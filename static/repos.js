@@ -78,7 +78,10 @@ async function loadRepos() {
             </td>
             <td class="p-4 text-xs opacity-80">${source}</td>
             <td class="p-4 text-right">
-                <button onclick="openModal('${name}')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-bold mr-2 transition-colors">
+                <button onclick="updateSingleRepo('${name}', this)" class="p-2 text-gray-400 hover:text-brand-light transition-colors" title="Update now">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+                <button onclick="openModal('${name}')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-bold mx-2 transition-colors">
                     <i class="fa-solid fa-pen"></i> Edit
                 </button>
                 <button onclick="deleteRepo('${name}')" class="p-2 text-gray-500 hover:text-red-500 transition-colors">
@@ -87,6 +90,34 @@ async function loadRepos() {
             </td>
         `;
         tbody.appendChild(tr);
+    }
+}
+
+async function updateSingleRepo(name, btn) {
+    const icon = btn.querySelector('i');
+    icon.classList.add('fa-spin');
+    btn.disabled = true;
+
+    try {
+        const res = await fetch('/update_repos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targets: [name] })
+        });
+        const data = await res.json();
+        
+        if (data.success && data.updated.length > 0) {
+            alert(`Successfully updated ${name}`);
+        } else if (data.errors && data.errors.length > 0) {
+            alert(`Error updating ${name}: ${data.errors[0]}`);
+        } else {
+            alert(`${name} is already up to date.`);
+        }
+    } catch (e) {
+        alert("Update failed: " + e.message);
+    } finally {
+        icon.classList.remove('fa-spin');
+        btn.disabled = false;
     }
 }
 
