@@ -75,7 +75,7 @@ def check_ajb():
                     })
 
                     if response.status_code == 200:
-                        print("Payload sent successfully")
+                        print("Payloads sent successfully")
                     else:
                         print("Error sending payload:", response.text)
 
@@ -159,15 +159,15 @@ def sending_payload():
             return jsonify({"error": "Missing IP parameter"}), 400
         if not payload:
             result = send_payload(file_path='payloads/js/lapse.js', host=host, port=50000)
-            time.sleep(1)
+            time.sleep(10)
             if result:
                 result = send_payload(file_path='payloads/kstuff.elf', host=host, port=9021)
-                time.sleep(1)
+                time.sleep(10)
                 if result:
                     for filename in os.listdir(PAYLOAD_DIR):
                         if (fnmatch.fnmatch(filename, '*.bin') or fnmatch.fnmatch(filename, '*.elf')) and filename != 'kstuff.elf':
                             result = send_payload(file_path=os.path.join(PAYLOAD_DIR,filename), host=host, port=9021)
-                            time.sleep(1)
+                            time.sleep(5)
                             if not result:
                                 return jsonify({"error": f"Failed to send {filename}"}), 500
                     return jsonify({"success": True, "message": "All payloads sent successfully"})
