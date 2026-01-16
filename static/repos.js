@@ -62,31 +62,46 @@ async function loadRepos() {
     tbody.innerHTML = '';
 
     for (const [name, config] of Object.entries(currentRepos)) {
-        const isDirect = config.type === 'direct';
-        const source = isDirect ? 
-            `<div class="truncate w-64" title="${config.url}">${config.url}</div>` : 
-            `<div><i class="fa-brands fa-github mr-1"></i> ${config.repo} <span class="opacity-50 text-xs ml-1 font-mono">(${config.asset_pattern})</span></div>`;
-        
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-white/5 transition-colors group";
+        tr.className = "border-b border-oled-border last:border-0 hover:bg-white/5 transition-colors group";
         tr.innerHTML = `
-            <td class="p-4 font-mono text-brand-light font-bold">${name}</td>
-            <td class="p-4">
-                <span class="px-2 py-1 rounded text-[10px] uppercase font-bold tracking-wide ${isDirect ? 'bg-green-900/30 text-green-400 border border-green-900' : 'bg-purple-900/30 text-purple-400 border border-purple-900'}">
+            <td class="p-4 font-mono text-brand-light" data-label="Filename">
+                <div class="flex items-center gap-3">
+                    <i class="fa-regular fa-file-code opacity-50"></i>
+                    <span>${name}</span>
+                </div>
+            </td>
+            
+            <td class="p-4" data-label="Type">
+                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
+                    config.type === 'release' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 
+                    'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                }">
                     ${config.type}
                 </span>
             </td>
-            <td class="p-4 text-xs opacity-80">${source}</td>
-            <td class="p-4 text-right">
-                <button onclick="updateSingleRepo('${name}', this)" class="p-2 text-gray-400 hover:text-brand-light transition-colors" title="Update now">
-                    <i class="fa-solid fa-arrows-rotate"></i>
-                </button>
-                <button onclick="openModal('${name}')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-bold mx-2 transition-colors">
-                    <i class="fa-solid fa-pen"></i> Edit
-                </button>
-                <button onclick="deleteRepo('${name}')" class="p-2 text-gray-500 hover:text-red-500 transition-colors">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
+            
+            <td class="p-4 opacity-70 text-xs" data-label="Source">
+                <div class="flex flex-col gap-1">
+                    <span class="font-bold">${config.repo || 'Direct URL'}</span>
+                    <span class="font-mono opacity-50 text-[10px] truncate max-w-[150px] sm:max-w-xs">
+                        ${config.asset_pattern || config.url}
+                    </span>
+                </div>
+            </td>
+            
+            <td class="p-4 text-right" data-label="Actions">
+                <div class="flex items-center justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                    <button onclick="updateSingleRepo('${name}', this)" class="p-2 text-gray-400 hover:text-brand-light transition-colors" title="Update now">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                    <button onclick="openModal('${name}')" class="p-2 hover:text-brand-light transition-colors" title="Edit">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button onclick="deleteRepo('${name}')" class="p-2 hover:text-red-500 transition-colors" title="Delete">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
             </td>
         `;
         tbody.appendChild(tr);
