@@ -96,8 +96,11 @@ async function loadRepos() {
 
 async function updateSingleRepo(name, btn) {
     const icon = btn.querySelector('i');
-    icon.classList.add('fa-spin');
+    const originalClass = icon.className;
+    
+    icon.className = 'fa-solid fa-spinner fa-spin';
     btn.disabled = true;
+    Toast.show(`Updating ${name}...`, 'info');
 
     try {
         const res = await fetch('/update_repos', {
@@ -117,7 +120,7 @@ async function updateSingleRepo(name, btn) {
     } catch (e) {
         Toast.show("Update failed: " + e.message, "error");
     } finally {
-        icon.classList.remove('fa-spin');
+        icon.className = originalClass;
         btn.disabled = false;
     }
 }
