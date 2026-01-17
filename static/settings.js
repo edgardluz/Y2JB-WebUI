@@ -17,7 +17,7 @@ async function loadSettings() {
 
     } catch (error) {
         console.error('Error loading settings:', error);
-        showToast('Failed to load settings', 'error');
+        Toast.show('Failed to load settings', 'error');
     }
 }
 
@@ -44,12 +44,12 @@ async function saveAllSettings() {
         const result = await response.json();
 
         if (result.success) {
-            showToast('Settings saved successfully!', 'success');
+            Toast.show('Settings saved successfully!', 'success');
         } else {
-            showToast('Error: ' + result.error, 'error');
+            Toast.show('Error: ' + result.error, 'error');
         }
     } catch (error) {
         console.error('Error saving settings:', error);
-        showToast('Connection error while saving', 'error');
+        Toast.show('Connection error while saving', 'error');
     }
 }
