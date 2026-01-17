@@ -3,105 +3,99 @@ import json
 import requests
 import fnmatch
 
-CONFIG_FILE = os.path.join("static", "config", "repos.json")
+CONFIG_DIR = "static/config"
+REPO_FILE = os.path.join(CONFIG_DIR, "repos.json")
+PAYLOAD_DIR = "payloads"
 
-def get_config():
-    if not os.path.exists(CONFIG_FILE):
+def ensure_dir(file_path):
+    directory = os.path.dirname(file_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+def get_repos():
+    if not os.path.exists(REPO_FILE):
         return {}
     try:
-        with open(CONFIG_FILE, 'r') as f:
+        with open(REPO_FILE, 'r') as f:
             return json.load(f)
     except:
         return {}
 
-def save_config(config):
-    os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
-    with open(CONFIG_FILE, 'w') as f:
-        json.dump(config, f, indent=4)
+def save_repos(data):
+    ensure_dir(REPO_FILE)
+    with open(REPO_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
 
-def add_repo_entry(name, entry_data):
-    config = get_config()
-    config[name] = entry_data
-    save_config(config)
+def add_repo_entry(name, data):
+    repos = get_repos()
+    repos[name] = data
+    save_repos(repos)
 
 def delete_repo_entry(name):
-    config = get_config()
-    if name in config:
-        del config[name]
-        save_config(config)
-        return True
-    return False
+    repos = get_repos()
+    if name in repos:
+        del repos[name]
+        save_repos(repos)
 
-def download_file(url, save_path):
+def get_github_asset_url(repo_name, asset_pattern):
     try:
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        print(f"    Downloading {url}...")
-        r = requests.get(url, stream=True, timeout=15)
-        r.raise_for_status()
-        with open(save_path, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
-        print(f"    Saved to {save_path}")
-        return True
-    except Exception as e:
-        print(f"    [!] Error downloading: {e}")
-        return False
-
-def get_latest_release_asset(repo, pattern):
-    api_url = f"https://api.github.com/repos/{repo}/releases/latest"
-    try:
+        api_url = f"https://api.github.com/repos/{repo_name}/releases"
         response = requests.get(api_url, timeout=10)
         response.raise_for_status()
-        data = response.json()
-        
-        for asset in data.get("assets", []):
-            if fnmatch.fnmatch(asset["name"], pattern):
-                return asset["browser_download_url"]
+        releases = response.json()
+        for release in releases:
+            assets = release.get('assets', [])
+            for asset in assets:
+                if fnmatch.fnmatch(asset['name'], asset_pattern):
+                    print(f"Found {asset_pattern} in release: {release.get('tag_name')}")
+                    return asset.get('browser_download_url')
+        print(f"Asset {asset_pattern} not found in recent releases of {repo_name}")
         return None
     except Exception as e:
-        print(f"    [!] GitHub API Error for {repo}: {e}")
+        print(f"GitHub API Error: {e}")
         return None
 
-def update_payloads(targets=None):
-    config = get_config()
-    if not config:
-        return {"success": False, "message": "repos.json empty or not found"}
+def download_file(url, save_path):
+    ensure_dir(save_path)
+    try:
+        print(f"Downloading {url}...")
+        with requests.get(url, stream=True, timeout=30) as r:
+            r.raise_for_status()
+            with open(save_path, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+        return True, "Success"
+    except Exception as e:
+        return False, str(e)
 
-    updated_files = []
-    errors = []
-
-    for name, data in config.items():
-        if targets and "all" not in targets and name not in targets:
+def update_payloads(targets=['all']):
+    repos = get_repos()
+    results = {"success": True, "updated": [], "errors": []}
+    for name, config in repos.items():
+        if 'all' not in targets and name not in targets:
             continue
-
-        print(f"[*] Processing {name}...")
+        print(f"Processing {name}...")
         download_url = None
-        save_path = data.get("save_path")
-        
-        if data.get("type") == "direct":
-            download_url = data.get("url")
-            
-        elif data.get("type") == "release":
-            repo = data.get("repo")
-            pattern = data.get("asset_pattern")
-            download_url = get_latest_release_asset(repo, pattern)
-            if not download_url:
-                errors.append(f"Could not find asset '{pattern}' in {repo} releases")
-                continue
-
-        if download_url:
-            if download_file(download_url, save_path):
-                updated_files.append(name)
+        save_path = config.get('save_path')
+        if config.get('type') == 'direct':
+            download_url = config.get('url')
+        elif config.get('type') == 'release':
+            repo = config.get('repo')
+            pattern = config.get('asset_pattern')
+            if repo and pattern:
+                download_url = get_github_asset_url(repo, pattern)
             else:
-                errors.append(f"Failed to download {name}")
+                results['errors'].append(f"{name}: Missing repo/pattern config")
+                continue
+        if download_url and save_path:
+            success, msg = download_file(download_url, save_path)
+            if success:
+                results['updated'].append(name)
+            else:
+                results['errors'].append(f"{name}: {msg}")
         else:
-            errors.append(f"Invalid configuration for {name}")
-
-    return {
-        "success": True,
-        "updated": updated_files,
-        "errors": errors
-    }
+            results['errors'].append(f"{name}: URL not found")
+    return results
 
 if __name__ == "__main__":
     update_payloads()
