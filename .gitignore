@@ -4,3 +4,4 @@
 static/config/settings.json
 static/config/payload_config.json
 static/config/payload_order.json
+static/config/payload_delay_flags.json
