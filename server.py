@@ -28,6 +28,8 @@ CONFIG_DIR = "static/config"
 CONFIG_FILE = os.path.join(CONFIG_DIR, "settings.json")
 PAYLOAD_CONFIG_FILE = os.path.join(CONFIG_DIR, "payload_config.json")
 PAYLOAD_ORDER_FILE = os.path.join(CONFIG_DIR, "payload_order.json")
+PAYLOAD_DELAYS_FILE = os.path.join(CONFIG_DIR, "payload_delays.json")
+PAYLOAD_DELAY_FLAGS_FILE = os.path.join(CONFIG_DIR, "payload_delay_flags.json")
 ALLOWED_EXTENSIONS = {'bin', 'elf', 'js', 'dat'}
 url = "http://localhost:8000/send_payload"
 
@@ -61,6 +63,19 @@ def get_payload_order():
 def save_payload_order(order):
     with open(PAYLOAD_ORDER_FILE, 'w') as f:
         json.dump(order, f, indent=4)
+
+def get_payload_delays():
+    if not os.path.exists(PAYLOAD_DELAYS_FILE):
+        return {}
+    try:
+        with open(PAYLOAD_DELAYS_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return {}
+
+def save_payload_delays(data):
+    with open(PAYLOAD_DELAYS_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
 
 def save_payload_config(config):
     with open(PAYLOAD_CONFIG_FILE, 'w') as f:
@@ -157,6 +172,67 @@ def handle_payload_order():
             return jsonify({"success": True})
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+
+@app.route('/api/payload_delay', methods=['GET', 'POST'])
+def handle_payload_delay():
+    if request.method == 'GET':
+        return jsonify(get_payload_delays())
+    
+    if request.method == 'POST':
+        try:
+            data = request.json
+            filename = data.get('filename')
+            delay = data.get('delay')
+            
+            if not filename:
+                return jsonify({"error": "Missing filename"}), 400
+            
+            delays = get_payload_delays()
+            if delay is None or delay == "":
+                if filename in delays:
+                    del delays[filename]
+            else:
+                delays[filename] = int(delay)
+                
+            save_payload_delays(delays)
+            return jsonify({"success": True})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+def get_payload_delay_flags():
+    if not os.path.exists(PAYLOAD_DELAY_FLAGS_FILE):
+        return {}
+    try:
+        with open(PAYLOAD_DELAY_FLAGS_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return {}
+
+def save_payload_delay_flags(flags):
+    with open(PAYLOAD_DELAY_FLAGS_FILE, 'w') as f:
+        json.dump(flags, f, indent=4)
+
+@app.route('/api/payload_delays', methods=['GET'])
+def get_payload_delays_route():
+    return jsonify(get_payload_delay_flags())
+
+@app.route('/api/payload_delays/toggle', methods=['POST'])
+def toggle_payload_delay_flag():
+    try:
+        data = request.json
+        filename = data.get('filename')
+        enabled = data.get('enabled')
+        
+        if not filename:
+            return jsonify({"error": "Missing filename"}), 400
+            
+        flags = get_payload_delay_flags()
+        flags[filename] = enabled
+        save_payload_delay_flags(flags)
+        
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/edit_ajb', methods=['POST'])
 def edit_ajb():
@@ -267,6 +343,13 @@ def sending_payload():
                     except Exception as e:
                         print(f"[SORT] Error sorting payloads: {e}")
 
+                    delay_flags = get_payload_delay_flags()
+                    global_config = get_config()
+                    try:
+                        delay_time = float(global_config.get("global_delay", "5"))
+                    except:
+                        delay_time = 5.0
+
                     for filename in files:
                         if not config.get(filename, True):
                             print(f"[SKIP] {filename} (Disabled in settings)")
@@ -275,7 +358,12 @@ def sending_payload():
                         if (fnmatch.fnmatch(filename, '*.bin') or fnmatch.fnmatch(filename, '*.elf')) and filename != 'kstuff.elf':
                             print(f"[SEND] {filename} -> {host}:9021")
                             result = send_payload(file_path=os.path.join(PAYLOAD_DIR,filename), host=host, port=9021)
-                            time.sleep(5)
+                            
+                            if delay_flags.get(filename, False):
+                                print(f"[WAIT] Sleeping {delay_time}s for {filename}...")
+                                time.sleep(delay_time)
+                            else:
+                                time.sleep(0.5)
                             
                             if not result:
                                 print(f"[FAIL] Could not send {filename}")

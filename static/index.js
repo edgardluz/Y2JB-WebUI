@@ -284,7 +284,6 @@ async function loadsettings() {
 
 async function togglePayloadIndex(filename, checkbox) {
     const enabled = checkbox.checked;
-    
     const configKey = filename.split('/').pop(); 
 
     try {
@@ -305,17 +304,49 @@ async function togglePayloadIndex(filename, checkbox) {
     }
 }
 
+async function togglePayloadDelay(filename, btn) {
+    const isEnabled = btn.classList.contains('text-brand-light');
+    const newState = !isEnabled;
+
+    if (newState) {
+        btn.classList.add('bg-brand-blue/20', 'text-brand-light', 'border-brand-blue/50');
+        btn.classList.remove('opacity-40', 'hover:opacity-100');
+    } else {
+        btn.classList.remove('bg-brand-blue/20', 'text-brand-light', 'border-brand-blue/50');
+        btn.classList.add('opacity-40', 'hover:opacity-100');
+    }
+
+    try {
+        const response = await fetch('/api/payload_delays/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename, enabled: newState })
+        });
+
+        if(response.ok) {
+             Toast.show(`Delay ${newState ? 'enabled' : 'disabled'} for ${filename}`, 'info');
+        } else {
+            throw new Error("API Error");
+        }
+    } catch (e) {
+        console.error(e);
+        Toast.show('Failed to toggle delay', 'error');
+    }
+}
+
 async function loadpayloads() {
     try {
-        const [filesRes, configRes, orderRes] = await Promise.all([
+        const [filesRes, configRes, orderRes, delaysRes] = await Promise.all([
             fetch('/list_payloads'),
             fetch('/api/payload_config'),
-            fetch('/api/payload_order')
+            fetch('/api/payload_order'),
+            fetch('/api/payload_delays')
         ]);
         
         let files = await filesRes.json();
         const config = await configRes.json();
         const order = await orderRes.json();
+        const delays = await delaysRes.json();
 
         const listElement = document.getElementById('PL');
         const countElement = document.getElementById('payload-count');
@@ -346,12 +377,17 @@ async function loadpayloads() {
         files.forEach(file => {
             const configKey = file.split('/').pop();
             const isEnabled = config[configKey] !== false && config[file] !== false;
+            const delayEnabled = delays[configKey] === true;
 
             const card = document.createElement('li');
             card.className = "draggable-item input-field border rounded-xl p-2 pr-4 flex items-center justify-between group transition-colors hover:border-brand-blue mb-3 bg-black/20";
             card.draggable = true;
             card.dataset.filename = configKey;
             
+            const delayClass = delayEnabled 
+                ? "bg-brand-blue/20 text-brand-light border-brand-blue/50" 
+                : "opacity-40 hover:opacity-100 border-transparent";
+
             card.innerHTML = `
                 <div class="flex items-center gap-2 overflow-hidden flex-1">
                     <div class="drag-handle touch-manipulation">
@@ -368,6 +404,12 @@ async function loadpayloads() {
                 </div>
 
                 <div class="flex items-center gap-3 shrink-0 ml-4">
+                    <button onclick="togglePayloadDelay('${configKey}', this)" 
+                        class="px-2 py-1 rounded transition-all border ${delayClass}" 
+                        title="Toggle Delay">
+                        <i class="fa-solid fa-stopwatch text-xs"></i>
+                    </button>
+
                     <div class="flex items-center gap-2 border-r pr-3 border-gray-300 dark:border-gray-700" title="Enable Autoload">
                         <span class="text-[10px] opacity-40 font-bold uppercase hidden sm:inline">Auto</span>
                         <label class="relative inline-flex items-center cursor-pointer">
