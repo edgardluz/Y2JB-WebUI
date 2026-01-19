@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
             author: "voidwhisper-ps",
             project: "ShadowMount",
             role: "Payload",
-            url: "https://github.com/voidwhisper-ps/ShadowMount",
+            url: "https://github.com/adel-ailane/ShadowMount",
             authorUrl: "https://github.com/voidwhisper-ps",
             avatar: "https://avatars.githubusercontent.com/u/253620578?v=4"
         },
