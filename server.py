@@ -17,10 +17,14 @@ import socket
 from src.ftp_manager import list_ftp_directory, delete_item, create_directory, rename_item, download_file_content, upload_file_content
 import io
 from flask import send_file
+import uuid
+from src.dns_server import DNSServer
 
 app = Flask(__name__)
 app.secret_key = 'Nazky'
 CORS(app)
+
+dns_service = None
 
 PAYLOAD_DIR = "payloads"
 DAT_DIR = "payloads/dat"
@@ -30,6 +34,7 @@ PAYLOAD_CONFIG_FILE = os.path.join(CONFIG_DIR, "payload_config.json")
 PAYLOAD_ORDER_FILE = os.path.join(CONFIG_DIR, "payload_order.json")
 PAYLOAD_DELAYS_FILE = os.path.join(CONFIG_DIR, "payload_delays.json")
 PAYLOAD_DELAY_FLAGS_FILE = os.path.join(CONFIG_DIR, "payload_delay_flags.json")
+DNS_CONFIG_FILE = os.path.join(CONFIG_DIR, "dns_rules.json")
 ALLOWED_EXTENSIONS = {'bin', 'elf', 'js', 'dat'}
 url = "http://localhost:8000/send_payload"
 
@@ -95,6 +100,21 @@ def update_config(key, value):
     config[key] = str(value)
     with open(CONFIG_FILE, 'w') as f:
         json.dump(config, f, indent=4)
+
+def get_dns_rules():
+    if not os.path.exists(DNS_CONFIG_FILE):
+        return []
+    try:
+        with open(DNS_CONFIG_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return []
+
+def save_dns_rules(rules):
+    with open(DNS_CONFIG_FILE, 'w') as f:
+        json.dump(rules, f, indent=4)
+    if dns_service:
+        dns_service.load_rules()
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -641,6 +661,63 @@ def api_ftp_action():
         
     return jsonify({"success": False, "error": "Invalid action"}), 400
 
+@app.route('/dns')
+def dns_page():
+    return render_template('dns.html')
+
+@app.route('/api/dns/list')
+def api_dns_list():
+    return jsonify(get_dns_rules())
+
+@app.route('/api/dns/add', methods=['POST'])
+def api_dns_add():
+    try:
+        data = request.json
+        name = data.get('name')
+        domain = data.get('domain')
+        target = data.get('target', '0.0.0.0')
+
+        if not name or not domain:
+            return jsonify({"error": "Name and Domain are required"}), 400
+
+        rules = get_dns_rules()
+        new_rule = {
+            "id": str(uuid.uuid4()),
+            "name": name,
+            "domain": domain,
+            "target": target
+        }
+        rules.append(new_rule)
+        save_dns_rules(rules)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/dns/delete', methods=['POST'])
+def api_dns_delete():
+    try:
+        rule_id = request.json.get('id')
+        rules = get_dns_rules()
+        rules = [r for r in rules if r.get('id') != rule_id]
+        save_dns_rules(rules)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     threading.Thread(target=check_ajb, daemon=True).start()
-    app.run(host="0.0.0.0", port=8000 ,debug=False)
+
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("1.1.1.1", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except:
+        local_ip = "127.0.0.1"
+
+    print(f"--- Initializing DNS Server on {local_ip} ---")
+    
+    dns_service = DNSServer(config_file=DNS_CONFIG_FILE, host_ip=local_ip)
+    threading.Thread(target=dns_service.start, daemon=True).start()
+
+    app.run(host="0.0.0.0", port=8000, debug=False)

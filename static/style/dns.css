@@ -1,0 +1,123 @@
+.dns-controls {
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border: 1px solid #333;
+}
+
+.dns-controls h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #fff;
+}
+
+.input-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 10px;
+}
+
+.input-group input {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background: #252525;
+    color: white;
+    font-size: 14px;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #0070f3;
+}
+
+.hint {
+    color: #888;
+    font-size: 0.85em;
+    margin-top: 10px;
+}
+
+.btn-primary {
+    background: #0070f3;
+    color: white;
+    border: none;
+    padding: 0 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: #0051a2;
+}
+
+.rules-list {
+    animation: fadeIn 0.3s ease;
+}
+
+.rule-item {
+    background: #252525;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid #0070f3;
+}
+
+.rule-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.rule-name {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #fff;
+}
+
+.rule-detail {
+    color: #bbb;
+    font-size: 0.9em;
+    font-family: monospace;
+    margin-top: 4px;
+}
+
+.delete-btn {
+    background: #ff4444;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.delete-btn:hover {
+    background: #cc0000;
+}
+
+.no-data {
+    text-align: center;
+    color: #666;
+    padding: 30px;
+    background: #1e1e1e;
+    border-radius: 8px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .input-group {
+        grid-template-columns: 1fr;
+    }
+    
+    .btn-primary {
+        padding: 12px;
+    }
+}
