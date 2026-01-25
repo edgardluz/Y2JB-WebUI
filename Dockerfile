@@ -1,5 +1,5 @@
-# Use official Python 3.11 slim image (lightweight, security-hardened)
-FROM python:3.11.9-slim-bookworm
+# Use official Python 3.14 slim image (lightweight, security-hardened)
+FROM python:3.14-slim-bookworm
 
 # Set working directory
 WORKDIR /app
