@@ -1,7 +1,7 @@
 import fnmatch
 import json
 import logging
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response
 from flask_cors import CORS
 from werkzeug.utils import secure_filename as werkzeug_secure_filename
 import os
@@ -19,6 +19,7 @@ import io
 from flask import send_file
 import uuid
 from src.dns_server import DNSServer
+from src.backpork.core import BackporkEngine
 
 app = Flask(__name__)
 app.secret_key = 'Nazky'
@@ -710,6 +711,24 @@ def api_dns_delete():
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/backpork')
+def backpork_page():
+    pairs = [{"id": i, "label": f"Pair {i}"} for i in range(1, 11)] 
+    return render_template('backpork.html', sdk_pairs=pairs)
+
+@app.route("/api/backpork/settings", methods=['GET', 'POST'])
+def handle_backpork_settings():
+    if request.method == 'GET':
+        return jsonify(BackporkEngine.load_config())
+    if request.method == 'POST':
+        BackporkEngine.save_config(request.json)
+        return jsonify({"success": True})
+
+@app.route("/api/backpork/run", methods=['POST'])
+def run_backpork_process():
+    data = request.json
+    return Response(BackporkEngine.run_process(data), mimetype='text/event-stream')
 
 if __name__ == "__main__":
     threading.Thread(target=check_ajb, daemon=True).start()
