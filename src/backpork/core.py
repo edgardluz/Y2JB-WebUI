@@ -175,4 +175,5 @@ class BackporkEngine:
 
             except Exception as e:
                 err = traceback.format_exc()
-                yield f"data: {json.dumps({'log': f'CRITICAL ERROR:\n{err}', 'status': 'error'})}\n\n"
+                error_msg = f"CRITICAL ERROR:\n{err}"
+                yield f"data: {json.dumps({'log': error_msg, 'status': 'error'})}\n\n"
