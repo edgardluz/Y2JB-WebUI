@@ -1,0 +1,12 @@
+{
+    "ajb": "false",
+    "ip": "",
+    "ftp_port": "1337",
+    "global_delay": "10",
+    "ui_animations": "true",
+    "kstuff": "true",
+    "debug_mode": "true",
+    "auto_update_repos": "false",
+    "dns_auto_start": "true",
+    "compact_mode": "false"
+}

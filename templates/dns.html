@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Y2JB - DNS Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        oled: { base: '#000000', surface: '#121212', border: '#2a2a2a' },
+                        brand: { blue: '#00439c', light: '#0070d1' }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/compact.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/toast.css') }}">
+    <script src="{{ url_for('static', filename='color_mode.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='ui_features.js') }}" defer></script>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col transition-colors duration-300 bg-oled-base text-gray-200">
+    <nav class="w-full border-b surface/90 backdrop-blur-md sticky top-0 z-30 border-white/5">
+        <div class="mx-auto px-4 h-16 flex items-center justify-between max-w-4xl">
+            <div class="flex items-center gap-3">
+                <i class="fa-brands fa-playstation text-2xl text-brand-light"></i>
+                <span class="font-bold tracking-tight text-xl">DNS Manager</span>
+            </div>
+            <a href="/" class="text-xs font-bold input-field px-4 py-2 rounded-xl border flex items-center gap-2 opacity-60 hover:opacity-100 transition-all hover:bg-white/5">
+                <i class="fa-solid fa-house-chimney"></i>
+                <span>Index</span>
+            </a>
+        </div>
+    </nav>
+
+    <main class="flex-1 w-full max-w-4xl mx-auto px-4 py-8 space-y-8">
+        <section class="surface border rounded-2xl p-6 md:p-8 shadow-2xl border-white/5 relative overflow-hidden group">
+            <div class="absolute -right-16 -top-16 w-32 h-32 bg-brand-blue/10 rounded-full blur-3xl group-hover:bg-brand-blue/20 transition-all"></div>
+            
+            <h3 class="text-xs font-bold opacity-40 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                <i class="fa-brands fa-plus-circle text-brand-light"></i>
+                Configure New Rule
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div class="md:col-span-4 space-y-1.5">
+                    <label class="text-[10px] uppercase font-bold opacity-30 ml-1">Friendly Name</label>
+                    <input type="text" id="ruleName" placeholder="e.g. Block Sony" class="input-field w-full px-4 py-3 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-light bg-black/20 transition-all">
+                </div>
+                <div class="md:col-span-4 space-y-1.5">
+                    <label class="text-[10px] uppercase font-bold opacity-30 ml-1">Domain Pattern</label>
+                    <input type="text" id="ruleDomain" placeholder="e.g. playstation.net" class="input-field w-full px-4 py-3 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-light bg-black/20 transition-all">
+                </div>
+                <div class="md:col-span-4 space-y-1.5">
+                    <label class="text-[10px] uppercase font-bold opacity-30 ml-1">Target Address</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="ruleTarget" placeholder="0.0.0.0 or SELF" value="0.0.0.0" class="input-field flex-1 px-4 py-3 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-light bg-black/20 transition-all font-mono text-center">
+                        <button onclick="addRule()" class="px-6 py-3 bg-gradient-to-br from-brand-blue to-brand-light hover:scale-105 active:scale-95 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-blue/20">
+                            Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex items-center gap-2 text-[10px] font-bold opacity-40 uppercase tracking-widest bg-white/5 w-fit px-3 py-1.5 rounded-lg border border-white/5">
+                <i class="fa-solid fa-circle-info text-brand-light"></i>
+                <span>Use "SELF" to redirect traffic to this host IP</span>
+            </div>
+        </section>
+
+        <section class="surface border rounded-2xl p-6 md:p-8 shadow-sm border-white/5 bg-gradient-to-br from-white/[0.01] to-transparent">
+            <h3 class="text-xs font-bold opacity-40 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-circle-question text-brand-light"></i>
+                How to Use
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
+                <div class="space-y-4">
+                    <div class="flex gap-3">
+                        <span class="w-6 h-6 rounded-full bg-brand-blue/20 text-brand-light flex items-center justify-center font-bold text-xs shrink-0">1</span>
+                        <p class="opacity-70">On your console, go to <span class="text-gray-100 font-semibold">Network Settings</span> and set the <span class="text-gray-100 font-semibold">Primary DNS</span> to this server's IP address.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <span class="w-6 h-6 rounded-full bg-brand-blue/20 text-brand-light flex items-center justify-center font-bold text-xs shrink-0">2</span>
+                        <p class="opacity-70">Add a rule for the domain you want to control. Subdomains are automatically matched (e.g., <code class="bg-black/40 px-1 rounded text-brand-light">playstation.net</code> matches all its sub-urls).</p>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="space-y-3 bg-black/20 p-4 rounded-xl border border-white/5">
+                        <h4 class="text-[10px] uppercase font-bold opacity-30 tracking-widest mb-1">Target Options</h4>
+                        <ul class="space-y-3 text-xs">
+                            <li class="flex items-start gap-2">
+                                <code class="text-brand-light font-bold bg-brand-blue/10 px-1.5 py-0.5 rounded">0.0.0.0</code>
+                                <span class="opacity-60">Effectively blocks the domain, making it appear offline (Sinkhole). Used for blocking updates.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <code class="text-brand-light font-bold bg-brand-blue/10 px-1.5 py-0.5 rounded">SELF</code>
+                                <span class="opacity-60">Points the domain to this WebUI. Useful for redirecting the User Guide to this dashboard.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <code class="text-brand-light font-bold bg-brand-blue/10 px-1.5 py-0.5 rounded">[IP]</code>
+                                <span class="opacity-60">Redirects the domain to any specific IP address of your choice.</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-brand-blue/5 p-4 rounded-xl border border-brand-blue/20">
+                        <h4 class="text-[10px] uppercase font-bold text-brand-light tracking-widest mb-2"><i class="fa-solid fa-mobile-screen-button mr-1"></i> Testing without a PS5</h4>
+                        <p class="text-[11px] opacity-60">You can test this with your phone! Just go to your phone's Wi-Fi settings and set the <span class="text-white">DNS Server</span> to this PC's IP. Then, try visiting a blocked domain in your browser.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="surface border rounded-2xl p-6 md:p-8 shadow-sm border-white/5">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-xs font-bold opacity-40 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-brand-light"></i>
+                    Active Routing Rules
+                </h3>
+            </div>
+            
+            <div id="rulesList" class="grid grid-cols-1 gap-4">
+            </div>
+        </section>
+    </main>
+
+    <footer class="w-full border-t border-white/5 py-6 mt-auto opacity-30 text-[10px] font-bold uppercase tracking-[0.3em]">
+        <div class="max-w-4xl mx-auto px-4 text-center">DNS Server Active on Port 53</div>
+    </footer>
+
+    <div id="toast" class="toast"></div>
+    <script src="{{ url_for('static', filename='toast.js') }}"></script>
+    <script src="{{ url_for('static', filename='dns.js') }}"></script>
+</body>
+</html>

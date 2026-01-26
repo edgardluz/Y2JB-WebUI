@@ -1,7 +1,7 @@
 import fnmatch
 import json
 import logging
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response
 from flask_cors import CORS
 from werkzeug.utils import secure_filename as werkzeug_secure_filename
 import os
@@ -17,10 +17,16 @@ import socket
 from src.ftp_manager import list_ftp_directory, delete_item, create_directory, rename_item, download_file_content, upload_file_content
 import io
 from flask import send_file
+import uuid
+from src.dns_server import DNSServer
+from src.backpork.core import BackporkEngine
+from src.features import setup_logging, run_startup_tasks
 
 app = Flask(__name__)
 app.secret_key = 'Nazky'
 CORS(app)
+
+dns_service = None
 
 PAYLOAD_DIR = "payloads"
 DAT_DIR = "payloads/dat"
@@ -30,6 +36,7 @@ PAYLOAD_CONFIG_FILE = os.path.join(CONFIG_DIR, "payload_config.json")
 PAYLOAD_ORDER_FILE = os.path.join(CONFIG_DIR, "payload_order.json")
 PAYLOAD_DELAYS_FILE = os.path.join(CONFIG_DIR, "payload_delays.json")
 PAYLOAD_DELAY_FLAGS_FILE = os.path.join(CONFIG_DIR, "payload_delay_flags.json")
+DNS_CONFIG_FILE = os.path.join(CONFIG_DIR, "dns_rules.json")
 ALLOWED_EXTENSIONS = {'bin', 'elf', 'js', 'dat'}
 url = "http://localhost:8000/send_payload"
 
@@ -95,6 +102,21 @@ def update_config(key, value):
     config[key] = str(value)
     with open(CONFIG_FILE, 'w') as f:
         json.dump(config, f, indent=4)
+
+def get_dns_rules():
+    if not os.path.exists(DNS_CONFIG_FILE):
+        return []
+    try:
+        with open(DNS_CONFIG_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return []
+
+def save_dns_rules(rules):
+    with open(DNS_CONFIG_FILE, 'w') as f:
+        json.dump(rules, f, indent=4)
+    if dns_service:
+        dns_service.load_rules()
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -330,11 +352,18 @@ def sending_payload():
             time.sleep(10)
             
             if result:
-                print(f"[SEND] kstuff.elf -> {host}:9021")
-                result = send_payload(file_path='payloads/kstuff.elf', host=host, port=9021)
-                time.sleep(10)
+                global_config = get_config()
+                kstuff_enabled = global_config.get("kstuff", "true") == "true"
+                kstuff_result = True 
+
+                if kstuff_enabled:
+                    print(f"[SEND] kstuff.elf -> {host}:9021")
+                    kstuff_result = send_payload(file_path='payloads/kstuff.elf', host=host, port=9021)
+                    time.sleep(10)
+                else:
+                    print("[SKIP] kstuff.elf (Disabled in Settings)")
                 
-                if result:
+                if kstuff_result:
                     files = os.listdir(PAYLOAD_DIR)
                     try:
                         order = get_payload_order()
@@ -525,7 +554,11 @@ def handle_settings():
             new_settings = request.get_json()
             current_config = get_config()
             
-            valid_keys = ['ip', 'ajb', 'ftp_port']
+            valid_keys = [
+                'ip', 'ajb', 'ftp_port', 'global_delay', 
+                'ui_animations', 'kstuff', 'debug_mode', 
+                'auto_update_repos', 'dns_auto_start', 'compact_mode'
+            ]
             for key in valid_keys:
                 if key in new_settings:
                     current_config[key] = str(new_settings[key])
@@ -641,6 +674,89 @@ def api_ftp_action():
         
     return jsonify({"success": False, "error": "Invalid action"}), 400
 
+@app.route('/dns')
+def dns_page():
+    return render_template('dns.html')
+
+@app.route('/api/dns/list')
+def api_dns_list():
+    return jsonify(get_dns_rules())
+
+@app.route('/api/dns/add', methods=['POST'])
+def api_dns_add():
+    try:
+        data = request.json
+        name = data.get('name')
+        domain = data.get('domain')
+        target = data.get('target', '0.0.0.0')
+
+        if not name or not domain:
+            return jsonify({"error": "Name and Domain are required"}), 400
+
+        rules = get_dns_rules()
+        new_rule = {
+            "id": str(uuid.uuid4()),
+            "name": name,
+            "domain": domain,
+            "target": target
+        }
+        rules.append(new_rule)
+        save_dns_rules(rules)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/dns/delete', methods=['POST'])
+def api_dns_delete():
+    try:
+        rule_id = request.json.get('id')
+        rules = get_dns_rules()
+        rules = [r for r in rules if r.get('id') != rule_id]
+        save_dns_rules(rules)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/backpork')
+def backpork_page():
+    pairs = [{"id": i, "label": f"Pair {i}"} for i in range(1, 11)] 
+    return render_template('backpork.html', sdk_pairs=pairs)
+
+@app.route("/api/backpork/settings", methods=['GET', 'POST'])
+def handle_backpork_settings():
+    if request.method == 'GET':
+        return jsonify(BackporkEngine.load_config())
+    if request.method == 'POST':
+        BackporkEngine.save_config(request.json)
+        return jsonify({"success": True})
+
+@app.route("/api/backpork/run", methods=['POST'])
+def run_backpork_process():
+    data = request.json
+    return Response(BackporkEngine.run_process(data), mimetype='text/event-stream')
+
 if __name__ == "__main__":
+    config = get_config()
+    
+    setup_logging(config)
+    
+    run_startup_tasks(config)
+
     threading.Thread(target=check_ajb, daemon=True).start()
-    app.run(host="0.0.0.0", port=8000 ,debug=False)
+
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("1.1.1.1", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except:
+        local_ip = "127.0.0.1"
+
+    if config.get("dns_auto_start", "true") == "true":
+        print(f"--- Initializing DNS Server on {local_ip} ---")
+        dns_service = DNSServer(config_file=DNS_CONFIG_FILE, host_ip=local_ip)
+        threading.Thread(target=dns_service.start, daemon=True).start()
+    else:
+        print("[STARTUP] DNS Server disabled by settings")
+
+    app.run(host="0.0.0.0", port=8000, debug=(config.get("debug_mode") == "true"))

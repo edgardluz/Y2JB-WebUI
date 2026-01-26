@@ -1,7 +1,8 @@
 /__pycache__
 /config
 /src/__pycache__
-static/config/settings.json
 static/config/payload_config.json
 static/config/payload_order.json
 static/config/payload_delay_flags.json
+static/config/dns_rules.json
+/src/backpork/__pycache__

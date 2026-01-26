@@ -1,12 +1,21 @@
 <center><h1>Y2JB-WebUI</h1></center>
 <center><h2>Manage Y2JB using a WebUI</h2></center>
+<center><a href="https://discord.gg/7CcBNJup2j"><img src="https://img.shields.io/discord/1463591261461155935?color=7289da&label=Discord&logo=discord&logoColor=white" alt="Discord"></a></center>
 
 ---
 
 # F.A.Q
 
 ### What is this thing ?
-This is a local website that allow you to manage everything related to Y2JB easily, with this you can upload, delete and send payloads to you'r console. Payloads can be organized into subdirectories (like `payloads/js/`) and the UI will automatically find them.
+This is a local website that allow you to manage everything related to Y2JB easily. It features:
+- **Payload Management**: Upload, delete, and send payloads with recursive directory support.
+- **Repository Manager**: Automatically update payloads directly from GitHub Releases or URLs.
+- **DNS Manager**: Redirect domains (like the User Guide) or block Sony updates via sinkholing.
+- **FTP Manager**: Browse, upload, delete, and edit files on your PS5 from the browser. Includes a built-in text editor and image viewer.
+- **Settings & Customization**: Configure Auto-Jailbreak, manage Payload Loading Sequence, toggle Dark Mode, and enable specific options like Kstuff autoloading.
+- **Automation**: Integrated Auto-Jailbreak with configurable delay and firing order.
+- **Tools**: One-click Update Blocker and `download0.dat` push.
+
 ### How can i upload a payload ?
 You just have to select (or drag and drop) a payload then click on the "upload a payload" button. **You can also download payloads directly from a URL using the input field next to file selection.** These URL downloads are automatically saved to your Repository Manager for future updates.
 ### How can i send a payload ?
@@ -21,6 +30,20 @@ Well not right now, i maybe fixing that in a next update.
 Yes of course, this is not a replacement of [Y2JB](https://github.com/Gezine/Y2JB), make sure to install it first.
 ### How do I update payloads from GitHub?
 Navigate to the **Repository Manager** by clicking the **"Repos"** button in the navigation bar. From there, you can add repositories using asset patterns (e.g. `kstuff.elf`) and update individual payloads using the refresh button next to each entry.
+
+### What is the DNS Manager for?
+It allows you to intercept console traffic. Usage is explained in the WebUI.
+
+### What can I do with the FTP Manager?
+The FTP Manager allows you to manage files on your console without external software. It includes a **built-in text editor** for configuration files and an **image viewer** for standard formats. Keep in mind it's experimental.
+
+### What options are in Settings?
+You can configure:
+- **Connection**: PS5 IP Address and FTP Port.
+- **Automation**: Toggle Auto-Jailbreak and "Load Kstuff" (automatically sends `kstuff.elf` if present).
+- **Sequence**: Toggle which payloads auto-load and set a global delay time.
+- **Appearance**: Toggle Dark Mode and UI Animations.
+
 ### Does this work with...
 You need something to host the server (pc, raspeberry pi, phone, ...) once the server is up you can access the WebUI from anything that can display a webpage (Android, IOS, PC, Nintendo Switch, ...).
 ### Can i upload any payload ?
@@ -80,7 +103,7 @@ If you did check the "Auto-Jailbreak" before pressing the "Start Jailbreak" butt
 - [Gezine](https://github.com/Gezine) | [Y2JB](https://github.com/Gezine/Y2JB/)
 - [itsPLK ](https://github.com/itsPLK) | [ps5_y2jb_autoloader](https://github.com/itsPLK/ps5_y2jb_autoloader)
 - [EchoStretch](https://github.com/EchoStretch) | [kstuff](https://github.com/EchoStretch/kstuff)
-- [voidwhisper-ps](https://github.com/voidwhisper-ps) | [ShadowMount](https://github.com/voidwhisper-ps/ShadowMount)
+- [voidwhisper-ps](https://github.com/voidwhisper-ps) | [ShadowMount](https://github.com/adel-ailane/ShadowMount)
 - [drakmor](https://github.com/drakmor) | [ftpsrv](https://github.com/drakmor/ftpsrv)
 - [john-tornblom](https://github.com/john-tornblom) | [websrv](https://github.com/ps5-payload-dev/websrv)
 

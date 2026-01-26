@@ -1,0 +1,10 @@
+{
+    "mode": "downgrade",
+    "input_path": "MI BOMBO",
+    "output_path": "MI BOMBO",
+    "sdk_pair": "4",
+    "paid": "0x3100000000000002",
+    "ptype": "fake",
+    "backup": true,
+    "use_fakelib": true
+}
