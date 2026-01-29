@@ -135,7 +135,15 @@ async function saveRepo() {
         return Toast.show("Filename must end with .bin, .elf, .js, or .dat", "warning");
     }
 
-    let payload = { name, old_name: oldName, type, save_path: `payloads/${name}` };
+    const token = document.getElementById('repo-token').value.trim();
+
+    let payload = { 
+        name, 
+        old_name: oldName, 
+        type, 
+        save_path: `payloads/${name}`,
+        token: token || null 
+    };
 
     if (type === 'direct') {
         payload.url = document.getElementById('repo-url').value.trim();
@@ -200,6 +208,7 @@ async function editRepo(name) {
             document.getElementById('old-name-ref').value = name;
             document.getElementById('repo-name').value = name;
             document.getElementById('repo-type').value = config.type;
+            document.getElementById('repo-token').value = config.token || '';
             toggleFields();
             if (config.type === 'direct') {
                 document.getElementById('repo-url').value = config.url || '';

@@ -29,6 +29,7 @@ CORS(app)
 dns_service = None
 
 PAYLOAD_DIR = "payloads"
+ELF_DIR = "payloads/elf"
 DAT_DIR = "payloads/dat"
 CONFIG_DIR = "static/config"
 CONFIG_FILE = os.path.join(CONFIG_DIR, "settings.json")
@@ -41,6 +42,7 @@ ALLOWED_EXTENSIONS = {'bin', 'elf', 'js', 'dat'}
 url = "http://localhost:8000/send_payload"
 
 os.makedirs(PAYLOAD_DIR, exist_ok=True)
+os.makedirs(ELF_DIR, exist_ok=True)
 os.makedirs(DAT_DIR, exist_ok=True)
 os.makedirs(CONFIG_DIR, exist_ok=True)
 os.makedirs('templates', exist_ok=True)
@@ -301,7 +303,11 @@ def upload_payload():
 
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        save_path = os.path.join(PAYLOAD_DIR, filename)
+        
+        if filename.lower().endswith('.elf'):
+            save_path = os.path.join(ELF_DIR, filename)
+        else:
+            save_path = os.path.join(PAYLOAD_DIR, filename)
 
         try:
             file.save(save_path)
@@ -362,14 +368,23 @@ def sending_payload():
                 kstuff_result = True 
 
                 if kstuff_enabled:
+                    kstuff_path = os.path.join(ELF_DIR, 'kstuff.elf')
+                    if not os.path.exists(kstuff_path):
+                        kstuff_path = 'payloads/kstuff.elf'
+
                     print(f"[SEND] kstuff.elf -> {host}:9021")
-                    kstuff_result = send_payload(file_path='payloads/kstuff.elf', host=host, port=9021)
+                    kstuff_result = send_payload(file_path=kstuff_path, host=host, port=9021)
                     time.sleep(10)
                 else:
                     print("[SKIP] kstuff.elf (Disabled in Settings)")
                 
                 if kstuff_result:
-                    files = os.listdir(PAYLOAD_DIR)
+                    files = []
+                    for root, _, filenames in os.walk(PAYLOAD_DIR):
+                        for f in filenames:
+                            rel_path = os.path.relpath(os.path.join(root, f), PAYLOAD_DIR).replace("\\", "/")
+                            files.append(rel_path)
+
                     try:
                         order = get_payload_order()
                         weights = {name: i for i, name in enumerate(order)}
@@ -389,7 +404,7 @@ def sending_payload():
                             print(f"[SKIP] {filename} (Disabled in settings)")
                             continue
 
-                        if (fnmatch.fnmatch(filename, '*.bin') or fnmatch.fnmatch(filename, '*.elf')) and filename != 'kstuff.elf':
+                        if (fnmatch.fnmatch(filename, '*.bin') or fnmatch.fnmatch(filename, '*.elf')) and 'kstuff.elf' not in filename:
                             print(f"[SEND] {filename} -> {host}:9021")
                             result = send_payload(file_path=os.path.join(PAYLOAD_DIR,filename), host=host, port=9021)
                             
