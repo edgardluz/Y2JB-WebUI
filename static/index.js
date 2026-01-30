@@ -35,13 +35,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     dropZone.addEventListener('dragenter', (e) => {
-        dropZone.classList.add('drag-highlight');
-        clearTimeout(dragLeaveTimer);
+        if (e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files')) {
+            dropZone.classList.add('drag-highlight');
+            clearTimeout(dragLeaveTimer);
+        }
     }, false);
 
     dropZone.addEventListener('dragover', (e) => {
-        dropZone.classList.add('drag-highlight');
-        clearTimeout(dragLeaveTimer);
+        if (e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files')) {
+            dropZone.classList.add('drag-highlight');
+            clearTimeout(dragLeaveTimer);
+        }
     }, false);
 
     dropZone.addEventListener('dragleave', (e) => {
