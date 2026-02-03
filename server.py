@@ -128,29 +128,57 @@ def secure_filename(filename):
     import re
     return re.sub(r'[^a-zA-Z0-9_.-]', '_', filename)
 
+# suka nxj nezinau ka cia blet daryt kurwa.
+def is_port_open(ip, port, timeout=2):
+    try:
+        with socket.create_connection((ip, port), timeout=timeout):
+            return True
+    except:
+        return False
+
 def check_ajb():
+    # tikrinam ar nxj state ijungtas ar ne
+    last_port_state = False
+    
     while True:
         try:
             config = get_config()
-            ajb_content = config.get("ajb", "false").lower()
-
-
-            if ajb_content == "true":
+            # ajb ijungtas = pisam
+            if config.get("ajb", "false").lower() == "true":
                 ip_address = config.get("ip", "").strip()
 
-                if not ip_address:
-                    print("[AJB] Enabled but IP missing")
+                if ip_address:
+                    # duris atidarytos = pisam payloada
+                    current_port_state = is_port_open(ip_address, 50000)
+                    
+                    #bbd aiskint. pashol nxj debilai
+                    if current_port_state and not last_port_state:
+                        print(f"[AJB] Target {ip_address}:50000 detected OPEN. Initiating sequence...")
+                        
+                        try:
+                            response = requests.post(url, json={
+                                "IP": ip_address,
+                                "payload": ""
+                            })
+                            if response.status_code == 200:
+                                print("[AJB] Sequence completed successfully.")
+                            else:
+                                print(f"[AJB] Error: {response.text}")
+                        except Exception as req_e:
+                             print(f"[AJB] Connection Error during trigger: {req_e}")
+
+                    # tikrinam ar resetino tsage
+                    # duris uzsidaro (ps issijungia or tt) , resetinam state
+                    # kai ps injugs turetu veikt
+                    elif not current_port_state and last_port_state:
+                         print(f"[AJB] Target {ip_address}:50000 closed. Resetting automation state.")
+                    
+                    # surasau paskutine duru state, kad zinot kada keistis
+                    last_port_state = current_port_state
                 else:
-
-                    response = requests.post(url, json={
-                        "IP": ip_address,
-                        "payload": ""
-                    })
-
-                    if response.status_code == 200:
-                        print("[AJB] Sequence completed successfully")
-                    else:
-                        print(f"[AJB] Error: {response.text}")
+                    print("[AJB] Enabled but IP missing")
+            else:
+                last_port_state = False
 
         except Exception as e:
             print("[AJB] Error:", str(e))

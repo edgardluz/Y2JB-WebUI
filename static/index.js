@@ -340,7 +340,8 @@ async function loadsettings() {
 
 async function togglePayloadIndex(filename, checkbox) {
     const enabled = checkbox.checked;
-    const configKey = filename.split('/').pop();
+    // Fix: Use the full filename/path as the key, do not strip path
+    const configKey = filename;
 
     const card = checkbox.closest('.draggable-item');
     const nameSpan = card?.querySelector('.payload-name');
@@ -456,14 +457,16 @@ async function loadpayloads() {
             const weights = {};
             order.forEach((name, index) => weights[name] = index);
             files.sort((a, b) => {
-                const wa = weights[a.split('/').pop()] ?? 9999;
-                const wb = weights[b.split('/').pop()] ?? 9999;
+                // Fix: Use full path to lookup weights
+                const wa = weights[a] ?? 9999;
+                const wb = weights[b] ?? 9999;
                 return wa - wb;
             });
         }
 
         files.forEach(file => {
-            const configKey = file.split('/').pop();
+            // Fix: Use full path for configKey
+            const configKey = file; 
             const isEnabled = config[configKey] !== false && config[file] !== false;
             const delayEnabled = delays[configKey] === true;
 
