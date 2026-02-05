@@ -797,23 +797,31 @@ if __name__ == "__main__":
     
     setup_logging(config)
     
-    run_startup_tasks(config)
+    # nu ka dede
+    debug_mode = config.get("debug_mode") == "true"
+    is_reloader_process = os.environ.get("WERKZEUG_RUN_MAIN") == "true"
 
-    threading.Thread(target=check_ajb, daemon=True).start()
+    # tikiuosi kad veiks, nemanau bet ok 
+    # debug ijungtas = tada reloaderio prcoesssasassasasasassas.
+    if not debug_mode or is_reloader_process:
+        run_startup_tasks(config)
 
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("1.1.1.1", 80))
-        local_ip = s.getsockname()[0]
-        s.close()
-    except:
-        local_ip = "127.0.0.1"
+        threading.Thread(target=check_ajb, daemon=True).start()
 
-    if config.get("dns_auto_start", "true") == "true":
-        print(f"--- Initializing DNS Server on {local_ip} ---")
-        dns_service = DNSServer(config_file=DNS_CONFIG_FILE, host_ip=local_ip)
-        threading.Thread(target=dns_service.start, daemon=True).start()
-    else:
-        print("[STARTUP] DNS Server disabled by settings")
+        # permetu dns kad nemaisytu ajb ir kitas funkcijas, nes gali buti problemu su threading ir flask debug mode
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("1.1.1.1", 80))
+            local_ip = s.getsockname()[0]
+            s.close()
+        except:
+            local_ip = "127.0.0.1"
 
-    app.run(host="0.0.0.0", port=8000, debug=(config.get("debug_mode") == "true"))
+        if config.get("dns_auto_start", "true") == "true":
+            print(f"--- Initializing DNS Server on {local_ip} ---")
+            dns_service = DNSServer(config_file=DNS_CONFIG_FILE, host_ip=local_ip)
+            threading.Thread(target=dns_service.start, daemon=True).start()
+        else:
+            print("[STARTUP] DNS Server disabled by settings")
+
+    app.run(host="0.0.0.0", port=8000, debug=debug_mode)
