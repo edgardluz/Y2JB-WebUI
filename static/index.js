@@ -100,6 +100,7 @@ async function uploadPayload(droppedFile = null) {
     const file = (droppedFile instanceof File) ? droppedFile : fileInput.files[0];
 
     if (!file) {
+        if (typeof shakeElement === 'function') shakeElement('UPB');
         Toast.show('Please select a file first', 'error');
         return;
     }
@@ -139,6 +140,8 @@ async function saveIP() {
     const ipValue = ipInput.value;
     if (ipValue.trim() !== "") {
         setip(ipValue);
+    } else {
+        shakeElement('IP');
     }
 }
 
