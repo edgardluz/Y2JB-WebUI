@@ -39,12 +39,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style/index.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/compact.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/toast.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/effects.css') }}">
     <script src="{{ url_for('static', filename='color_mode.js') }}" defer></script>
     <script src="{{ url_for('static', filename='direct.js') }}" defer></script>
     <script src="{{ url_for('static', filename='toast.js') }}" defer></script>
     <script src="{{ url_for('static', filename='ui_features.js') }}" defer></script>
     <script src="{{ url_for('static', filename='drag_sort.js') }}" defer></script>
     <script src="{{ url_for('static', filename='index.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='clock.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='effects.js') }}" defer></script>
 </head>
 
 <body class="font-sans antialiased min-h-screen flex flex-col transition-colors duration-300">
@@ -266,6 +269,11 @@
             <div class="flex items-center gap-2" title="Your device's IP address">
                 <i class="fa-solid fa-laptop-code"></i>
                 <span>Client: <span id="client-ip" class="text-brand-light">Loading...</span></span>
+            </div>
+
+            <div class="flex items-center gap-2" title="Local System Time">
+                <i class="fa-regular fa-clock"></i>
+                <span id="live-clock" class="text-brand-light font-mono">00:00:00</span>
             </div>
         </div>
 
