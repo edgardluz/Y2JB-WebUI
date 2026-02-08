@@ -20,7 +20,8 @@ from flask import send_file
 import uuid
 from src.dns_server import DNSServer
 from src.backpork.core import BackporkEngine
-from src.features import setup_logging, run_startup_tasks
+from src.features import setup_logging, run_startup_tasks, get_logs
+from src.system_manager import get_system_stats, power_control
 
 app = Flask(__name__)
 app.secret_key = 'Nazky'
@@ -791,6 +792,36 @@ def handle_backpork_settings():
 def run_backpork_process():
     data = request.json
     return Response(BackporkEngine.run_process(data), mimetype='text/event-stream')
+
+@app.route('/logs')
+def logs_page():
+    return render_template('logs.html')
+
+@app.route('/api/logs')
+def api_logs():
+    return jsonify({"logs": get_logs()})
+
+@app.route('/system')
+def system_page():
+    return render_template('system.html')
+
+@app.route('/api/system/stats')
+def api_system_stats():
+    return jsonify(get_system_stats())
+
+@app.route('/api/system/power', methods=['POST'])
+def api_system_power():
+    data = request.json
+    action = data.get('action')
+    
+    if action not in ['reboot', 'shutdown']:
+        return jsonify({"success": False, "error": "Invalid action"}), 400
+        
+    success, message = power_control(action)
+    if success:
+        return jsonify({"success": True, "message": message})
+    else:
+        return jsonify({"success": False, "error": message}), 500
 
 if __name__ == "__main__":
     config = get_config()
