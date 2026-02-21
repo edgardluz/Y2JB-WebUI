@@ -1,3 +1,19 @@
+html:not(.dark) body {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+
+html:not(.dark) .surface {
+    background-color: #ffffff;
+    border-color: #e5e7eb;
+}
+
+html:not(.dark) .input-field {
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+    color: #111827;
+}
+
 body.compact-mode {
     padding: 1rem !important;
 }
