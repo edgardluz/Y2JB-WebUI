@@ -100,11 +100,11 @@ pip install --upgrade pip -q
 
 # Install required dependencies
 echo "Installing dependencies..."
-pip install -q flask flask-cors werkzeug requests
+pip install -q -r requirements.txt
 
 # Verify critical dependencies
 echo "Verifying critical dependencies..."
-if ! python -c "import flask, flask_cors, requests" &> /dev/null; then
+if ! python -c "import flask, flask_cors, requests, psutil" &> /dev/null; then
     echo "Error: Failed to import critical dependencies"
     deactivate
     exit 1
