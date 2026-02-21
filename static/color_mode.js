@@ -1,3 +1,5 @@
+document.addEventListener('DOMContentLoaded', loadTheme);
+
 function toggleTheme() {
     const html = document.documentElement;
     const isDark = html.classList.toggle('dark');
