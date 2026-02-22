@@ -21,6 +21,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (clientIpEl) clientIpEl.textContent = "Unknown";
         });
 
+    fetch("/api/update_check")
+        .then(r => r.json())
+        .then(data => {
+            const el = document.getElementById("app-version");
+            if (el && data.local_version) el.textContent = "v" + data.local_version;
+        })
+        .catch(() => {});
+
     const dropZone = document.body;
     const fileInput = document.getElementById('fileInput');
     let dragLeaveTimer;
