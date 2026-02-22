@@ -70,3 +70,34 @@ async function saveAllSettings() {
         Toast.show('Connection error while saving', 'error');
     }
 }
+
+async function manualUpdateCheck() {
+    const btn = document.getElementById('btn-update-check');
+    const icon = document.getElementById('update-check-icon');
+    const statusText = document.getElementById('update-status-text');
+
+    btn.disabled = true;
+    icon.classList.add('fa-spin');
+
+    try {
+        const res = await fetch('/api/update_check?force=true');
+        const data = await res.json();
+
+        if (data.error) {
+            statusText.textContent = data.error;
+            Toast.show(data.error, 'warning');
+        } else if (data.up_to_date) {
+            statusText.textContent = `Up to date — v${data.local_version} (${data.local_date || data.local_branch || ''})`;
+            Toast.show('You are running the latest version!', 'success');
+        } else {
+            statusText.textContent = `Update: v${data.local_version} → v${data.remote_version} (${data.remote_date || ''})`;
+            Toast.show(`Update available! v${data.remote_version}`, 'info');
+        }
+    } catch (e) {
+        statusText.textContent = 'Failed to check for updates';
+        Toast.show('Update check failed', 'error');
+    } finally {
+        btn.disabled = false;
+        icon.classList.remove('fa-spin');
+    }
+}
