@@ -80,20 +80,20 @@
                         you must use the <b>Asset Pattern</b> to tell the system which file to grab.
                     </p>
                     
-                    <div class="bg-black/40 p-4 rounded-lg border border-oled-border">
+                    <div class="bg-gray-100 dark:bg-black/40 p-4 rounded-lg border border-gray-200 dark:border-oled-border">
                         <p class="text-[10px] font-bold opacity-50 uppercase mb-2 tracking-wider">Asset Pattern Examples</p>
                         <ul class="space-y-3 text-xs font-mono">
                             <li class="flex flex-col gap-1">
                                 <span class="opacity-60 font-sans">Exact Match:</span>
-                                <span class="text-green-400">kstuff.elf</span>
+                                <span class="text-green-600 dark:text-green-400">kstuff.elf</span>
                                 <span class="text-[10px] opacity-40 font-sans">Use when the filename is always static.</span>
                             </li>
-                            <li class="flex flex-col gap-1 border-t border-white/5 pt-2">
+                            <li class="flex flex-col gap-1 border-t border-gray-200 dark:border-white/5 pt-2">
                                 <span class="opacity-60 font-sans">Wildcards (Dynamic):</span>
                                 <span class="text-brand-light">download-*.zip</span>
                                 <span class="text-[10px] opacity-40 font-sans">Matches "download-1.3.zip", "download-v2.zip", etc.</span>
                             </li>
-                            <li class="flex flex-col gap-1 border-t border-white/5 pt-2">
+                            <li class="flex flex-col gap-1 border-t border-gray-200 dark:border-white/5 pt-2">
                                 <span class="opacity-60 font-sans">Complex Wildcards:</span>
                                 <span class="text-brand-light">*-ps5.elf</span>
                                 <span class="text-[10px] opacity-40 font-sans">Matches anything ending in "-ps5.elf" (e.g., ftpsrv-ps5.elf).</span>
@@ -117,32 +117,32 @@
                     <h4 class="font-bold opacity-80 text-xs uppercase tracking-wide">Example Configuration</h4>
                     <span class="text-[10px] opacity-40">repos.json structure</span>
                 </div>
-                <div class="relative bg-black/40 rounded-xl border border-oled-border overflow-hidden">
-                    <div class="flex items-center gap-1.5 px-4 py-2 border-b border-white/5 bg-white/5">
+                <div class="relative bg-gray-100 dark:bg-black/40 rounded-xl border border-gray-200 dark:border-oled-border overflow-hidden">
+                    <div class="flex items-center gap-1.5 px-4 py-2 border-b border-gray-200 dark:border-white/5 bg-gray-200 dark:bg-white/5">
                         <div class="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
                         <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/50"></div>
                         <div class="w-2.5 h-2.5 rounded-full bg-green-500/50"></div>
                     </div>
                     <pre class="p-4 overflow-x-auto text-[10px] font-mono leading-relaxed opacity-90 custom-scroll shadow-inner h-full max-h-[300px]">
 {
-    <span class="text-green-400">"lapse.js"</span>: {
+    <span class="text-green-600 dark:text-green-400">"lapse.js"</span>: {
         "type": "direct",
         "url": "https://raw.github.../lapse.js",
         "save_path": "payloads/js/lapse.js"
     },
-    <span class="text-purple-400">"kstuff.elf"</span>: {
+    <span class="text-purple-600 dark:text-purple-400">"kstuff.elf"</span>: {
         "type": "release",
         "repo": "EchoStretch/kstuff",
         "asset_pattern": "kstuff.elf",
         "save_path": "payloads/kstuff.elf"
     },
-    <span class="text-purple-400">"ftpsrv.elf"</span>: {
+    <span class="text-purple-600 dark:text-purple-400">"ftpsrv.elf"</span>: {
         "type": "release",
         "repo": "drakmor/ftpsrv",
         "asset_pattern": "ftpsrv-*.elf",
         "save_path": "payloads/ftpsrv-ps5.elf"
     },
-    <span class="text-purple-400">"notify.elf"</span>: {
+    <span class="text-purple-600 dark:text-purple-400">"notify.elf"</span>: {
         "type": "release",
         "repo": "adel-ailane/ShadowMount",
         "asset_pattern": "notify.elf",
