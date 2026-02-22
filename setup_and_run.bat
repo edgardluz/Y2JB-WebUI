@@ -1,6 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
 
+REM Ensure we run from the script's own directory
+cd /d "%~dp0"
+
 REM Check if Python is installed
 :check_python
 echo Checking if Python is installed...
@@ -76,7 +79,7 @@ python -m pip install --upgrade pip || (
 
 REM Install required dependencies
 echo Installing dependencies...
-pip install flask flask-cors werkzeug requests || (
+pip install -r requirements.txt || (
     echo Failed to install dependencies.
     call venv\Scripts\deactivate.bat
     pause
