@@ -776,6 +776,62 @@ def api_dns_delete():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/dns/import', methods=['POST'])
+def api_dns_import():
+    try:
+        raw_text = None
+
+        if 'file' in request.files:
+            file = request.files['file']
+            if file and file.filename:
+                raw_text = file.read().decode('utf-8', errors='ignore')
+        
+        if not raw_text:
+            raw_text = request.form.get('text', '') or (request.json or {}).get('text', '')
+
+        if not raw_text or not raw_text.strip():
+            return jsonify({"error": "No data provided"}), 400
+
+        rules = get_dns_rules()
+        existing_domains = {r.get('domain', '').lower().rstrip('.') for r in rules}
+
+        imported = 0
+        skipped = 0
+
+        for line in raw_text.splitlines():
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+
+            domain = line.lower().rstrip('.')
+            if domain in existing_domains:
+                skipped += 1
+                continue
+
+            rules.append({
+                "id": str(uuid.uuid4()),
+                "name": f"Block {domain.split('.')[0]}",
+                "domain": domain,
+                "target": "0.0.0.0"
+            })
+            existing_domains.add(domain)
+            imported += 1
+
+        save_dns_rules(rules)
+        print(f"[DNS] Imported {imported} rules, skipped {skipped} duplicates")
+        return jsonify({"success": True, "imported": imported, "skipped": skipped})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/dns/clear', methods=['POST'])
+def api_dns_clear():
+    try:
+        save_dns_rules([])
+        print("[DNS] All rules cleared")
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/backpork')
 def backpork_page():
     pairs = [{"id": i, "label": f"Pair {i}"} for i in range(1, 11)] 

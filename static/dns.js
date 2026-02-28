@@ -103,6 +103,77 @@ async function deleteRule(id) {
     }
 }
 
+function handleFileSelect(input) {
+    const label = document.getElementById('fileLabel');
+    if (input.files && input.files[0]) {
+        label.querySelector('span').textContent = input.files[0].name;
+        label.classList.add('opacity-100');
+        label.classList.remove('opacity-60');
+    }
+}
+
+async function importDomains() {
+    const textarea = document.getElementById('bulkImportText');
+    const fileInput = document.getElementById('bulkImportFile');
+    const text = textarea.value.trim();
+    const file = fileInput.files && fileInput.files[0];
+
+    if (!text && !file) {
+        if (typeof showToast === 'function') showToast('Paste a list or choose a file first', 'error');
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+        if (file) {
+            formData.append('file', file);
+        }
+        if (text) {
+            formData.append('text', text);
+        }
+
+        const response = await fetch('/api/dns/import', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            const msg = `Imported ${result.imported} rules` + (result.skipped > 0 ? `, ${result.skipped} duplicates skipped` : '');
+            if (typeof showToast === 'function') showToast(msg);
+            textarea.value = '';
+            fileInput.value = '';
+            const label = document.getElementById('fileLabel');
+            label.querySelector('span').textContent = 'Choose .txt file...';
+            label.classList.add('opacity-60');
+            label.classList.remove('opacity-100');
+            loadRules();
+        } else {
+            if (typeof showToast === 'function') showToast(result.error || 'Import failed', 'error');
+        }
+    } catch (error) {
+        if (typeof showToast === 'function') showToast('Failed to import', 'error');
+    }
+}
+
+async function clearAllRules() {
+    if (!confirm('Are you sure you want to delete ALL DNS rules? This cannot be undone.')) return;
+
+    try {
+        const response = await fetch('/api/dns/clear', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        });
+        
+        if (response.ok) {
+            loadRules();
+            if (typeof showToast === 'function') showToast('All rules cleared');
+        }
+    } catch (error) {
+        if (typeof showToast === 'function') showToast('Error clearing rules', 'error');
+    }
+}
+
 function escapeHtml(text) {
     if (!text) return text;
     return text
