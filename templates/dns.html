@@ -76,6 +76,49 @@
             </div>
         </section>
 
+        <section class="surface border rounded-2xl p-6 md:p-8 shadow-2xl border-white/5 relative overflow-hidden group">
+            <div class="absolute -left-16 -bottom-16 w-32 h-32 bg-brand-blue/10 rounded-full blur-3xl group-hover:bg-brand-blue/20 transition-all"></div>
+            
+            <h3 class="text-xs font-bold opacity-40 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-file-import text-brand-light"></i>
+                Bulk Import Blocklist
+            </h3>
+            
+            <div class="space-y-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] uppercase font-bold opacity-30 ml-1">Paste Domain List (one per line, # comments ignored)</label>
+                    <textarea id="bulkImportText" rows="6" placeholder="# PSN Block List&#10;dau01.ps4.update.playstation.net&#10;playstation.sony.akadns.net&#10;..." class="input-field w-full px-4 py-3 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-light bg-black/20 transition-all font-mono resize-y"></textarea>
+                </div>
+                
+                <div class="flex flex-col md:flex-row gap-3">
+                    <div class="flex-1 flex items-center gap-3">
+                        <label class="flex-1 relative">
+                            <input type="file" id="bulkImportFile" accept=".txt,.text,.list,.conf" class="hidden" onchange="handleFileSelect(this)">
+                            <div id="fileLabel" class="input-field w-full px-4 py-3 border rounded-xl text-sm bg-black/20 cursor-pointer hover:bg-white/5 transition-all flex items-center gap-2 opacity-60 hover:opacity-100">
+                                <i class="fa-solid fa-folder-open text-brand-light"></i>
+                                <span>Choose .txt file...</span>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="importDomains()" class="px-6 py-3 bg-gradient-to-br from-brand-blue to-brand-light hover:scale-105 active:scale-95 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-blue/20 flex items-center gap-2">
+                            <i class="fa-solid fa-file-import"></i>
+                            Import
+                        </button>
+                        <button onclick="clearAllRules()" class="px-6 py-3 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white text-sm font-bold rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-2">
+                            <i class="fa-solid fa-trash-can"></i>
+                            Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex items-center gap-2 text-[10px] font-bold opacity-40 uppercase tracking-widest bg-white/5 w-fit px-3 py-1.5 rounded-lg border border-white/5">
+                <i class="fa-solid fa-circle-info text-brand-light"></i>
+                <span>All imported domains are blocked (0.0.0.0). Duplicates are skipped.</span>
+            </div>
+        </section>
+
         <section class="surface border rounded-2xl p-6 md:p-8 shadow-sm border-white/5 bg-gradient-to-br from-white/[0.01] to-transparent">
             <h3 class="text-xs font-bold opacity-40 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                 <i class="fa-solid fa-circle-question text-brand-light"></i>
